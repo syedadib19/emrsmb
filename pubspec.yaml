@@ -21,6 +21,7 @@ environment:
   sdk: ">=3.0.0 <4.0.0"
 
 dependencies:
+  flutter_launcher_icons: ^0.13.1
   flutter_nfc_kit: ^3.6.0
   nfc_manager: ^3.5.0
   ndef: ^0.3.4
@@ -132,4 +133,10 @@ flutter:
   #
   # For details regarding fonts from package dependencies,
   # see https://flutter.dev/custom-fonts/#from-packages
-
+# for icons
+flutter_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon/iconme.png"  # Path to your new icon
+  #adaptive_icon_background: "assets/icon/background.png"  # For Android adaptive icons // this also
+ # adaptive_icon_foreground: "assets/icon/foreground.png" //i comment this first

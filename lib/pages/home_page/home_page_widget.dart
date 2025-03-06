@@ -4,6 +4,7 @@ import 'package:e_m_r_s_m_b/NFCstudentlookup.dart';
 import 'package:e_m_r_s_m_b/burnNFC.dart';
 import 'package:e_m_r_s_m_b/getsmp.dart';
 import 'package:e_m_r_s_m_b/meritdata.dart';
+import 'package:flutter/services.dart';
 
 import '/flutter_flow/flutter_flow_theme.dart';
 import '/flutter_flow/flutter_flow_util.dart';
@@ -211,14 +212,14 @@ class _HomePageWidgetState extends State<HomePageWidget> {
                         MaterialPageRoute(builder: (context)=>NFCScreen())
                     );
                   },
-                  text: 'Retrieve student data via NFC card',
+                  text: 'RETRIEVE STUDENT DATA via NFC CARD',
                   options: FFButtonOptions(
                     height: 40.0,
                     padding:
                     EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 0.0),
                     iconPadding:
                     EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
-                    color: Colors.black,
+                    color: Colors.blueGrey,
                     textStyle: FlutterFlowTheme.of(context).titleSmall.override(
                       fontFamily: 'Inter Tight',
                       color: Colors.white,
@@ -239,14 +240,14 @@ class _HomePageWidgetState extends State<HomePageWidget> {
                         MaterialPageRoute(builder: (context)=>BurnNFCPage())
                     );
                   },
-                  text: 'Burn NFC card',
+                  text: 'BURN NFC CARD',
                   options: FFButtonOptions(
                     height: 40.0,
                     padding:
                     EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 0.0),
                     iconPadding:
                     EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
-                    color: Colors.black,
+                    color: Colors.orangeAccent,
                     textStyle: FlutterFlowTheme.of(context).titleSmall.override(
                       fontFamily: 'Inter Tight',
                       color: Colors.white,
@@ -262,6 +263,7 @@ class _HomePageWidgetState extends State<HomePageWidget> {
                 child: FFButtonWidget(
                   onPressed: () {
                     print('Button pressed ...');
+                    SystemNavigator.pop(); // Exits the app
                   },
                   text: 'EXIT',
                   options: FFButtonOptions(
