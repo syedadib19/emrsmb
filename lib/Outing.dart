@@ -13,13 +13,89 @@ class NfcOutingScreen extends StatefulWidget {
 
 class _NfcOutingScreenState extends State<NfcOutingScreen> {
   bool isLoading = false;
+  bool isAutoScanEnabled = false;
+  String autoScanMode = ""; // "IN" or "OUT"
   String message = "Tap NFC card to scan";
-  List<Map<String, String>> studentsOutside = [];
+  String lastScannedNomak = "";
+  String lastScannedNama = "";
+  String lastScannedStatus = "";
+  String lastScannedTime = "";
 
   @override
   void initState() {
     super.initState();
-    fetchStudentsOutside();
+    loadLastScan();
+  }
+  void reloadPage(BuildContext context) {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => NfcOutingScreen()), // Replace with your main widget
+    );
+  }
+
+
+  Future<void> saveLastScan(String nomak, String nama, String status) async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      String timestamp = DateTime.now().toString();
+
+      await prefs.setString("lastNomak", nomak);
+      await prefs.setString("lastNama", nama);
+      await prefs.setString("lastStatus", status);
+      await prefs.setString("lastTime", timestamp);
+
+      if (!mounted) return; // Prevent calling setState if widget is disposed
+
+      setState(() {
+        lastScannedNomak = nomak;
+        lastScannedNama = nama;
+        lastScannedStatus = status;
+        lastScannedTime = timestamp;
+      });
+
+    } catch (e) {
+      print("Error saving last scan: $e");
+    }
+  }
+
+  void showPopup(String title, String content, Color color, bool isSuccess) {
+    if (!mounted) return;
+
+    if (isSuccess) {
+      Vibration.vibrate(duration: 200);
+    } else {
+      Vibration.vibrate(duration: 500);
+    }
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text(title, style: TextStyle(color: color)),
+          content: Text(content),
+          actions: [
+            TextButton(
+              child: Text("OK"),
+              onPressed: () => Navigator.of(context).pop(),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  Future<void> loadLastScan() async {
+    try {
+      SharedPreferences prefs = await SharedPreferences.getInstance();
+      setState(() {
+        lastScannedNomak = prefs.getString("lastNomak") ?? "No scan history";
+        lastScannedNama = prefs.getString("lastNama") ?? "-";
+        lastScannedStatus = prefs.getString("lastStatus") ?? "-";
+        lastScannedTime = prefs.getString("lastTime") ?? "-";
+      });
+    } catch (e) {
+      print("Error loading last scan: $e");
+    }
   }
 
   Future<void> scanNfcAndUpdateStatus(String status) async {
@@ -60,8 +136,9 @@ class _NfcOutingScreenState extends State<NfcOutingScreen> {
         if (response.statusCode == 200) {
           final data = jsonDecode(response.body);
           if (data["status"] == "success") {
-            showPopup("✅ Success", data["message"] ?? "Outing status updated", Colors.green, true);
-            fetchStudentsOutside();
+            String nama = data["nama"] ?? "Unknown";
+            saveLastScan(nomak, nama, status);
+            showPopup("✅ Success", "${data["message"]}\nStudent: $nama", Colors.green, true);
           } else {
             showPopup("❌ Error", data["message"] ?? "Failed to update outing data", Colors.red, false);
           }
@@ -71,6 +148,15 @@ class _NfcOutingScreenState extends State<NfcOutingScreen> {
       } catch (e) {
         showPopup("❌ Error", "Exception: ${e.toString()}", Colors.red, false);
       } finally {
+        if (isAutoScanEnabled && autoScanMode == status) {
+          Future.delayed(Duration(milliseconds: 500), () {
+            if (isAutoScanEnabled) {
+              scanNfcAndUpdateStatus(status);
+            }
+          });
+        } else {
+          NfcManager.instance.stopSession();
+        }
         setState(() {
           isLoading = false;
         });
@@ -78,42 +164,18 @@ class _NfcOutingScreenState extends State<NfcOutingScreen> {
     });
   }
 
-  Future<void> fetchStudentsOutside() async {
-    final url = Uri.parse("https://www.mrsmbetongsarawak.edu.my/skoq/contents/emerit/students_outside.asp");
-    final response = await http.get(url);
-    if (response.statusCode == 200) {
-      List<dynamic> data = jsonDecode(response.body);
-      setState(() {
-        studentsOutside = data.map<Map<String, String>>((student) => {
-          "nomak": student["nomak"].toString(),  // Ensure value is String
-          "name": student["name"].toString(),    // Ensure value is String
-        }).toList();
-      });
-    }
-  }
-
-  void showPopup(String title, String content, Color color, bool isSuccess) {
-    if (isSuccess) {
-      Vibration.vibrate(duration: 200);
-    } else {
-      Vibration.vibrate(duration: 500);
-    }
-
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text(title, style: TextStyle(color: color)),
-          content: Text(content),
-          actions: [
-            TextButton(
-              child: Text("OK"),
-              onPressed: () => Navigator.of(context).pop(),
-            ),
-          ],
-        );
-      },
-    );
+  void toggleAutoScan(String status) {
+    setState(() {
+      if (isAutoScanEnabled) {
+        isAutoScanEnabled = false;
+        autoScanMode = "";
+        NfcManager.instance.stopSession();
+      } else {
+        isAutoScanEnabled = true;
+        autoScanMode = status;
+        scanNfcAndUpdateStatus(status);
+      }
+    });
   }
 
   @override
@@ -126,39 +188,46 @@ class _NfcOutingScreenState extends State<NfcOutingScreen> {
           children: [
             Text(message, style: TextStyle(fontSize: 18)),
             SizedBox(height: 20),
+            Text(
+              "Last Scan: $lastScannedNomak - $lastScannedNama ($lastScannedStatus at $lastScannedTime)",
+              style: TextStyle(fontSize: 16, color: Colors.grey),
+            ),
+            SizedBox(height: 20),
             isLoading
                 ? CircularProgressIndicator()
                 : Column(
               children: [
                 ElevatedButton(
-                  onPressed: () => scanNfcAndUpdateStatus("OUT"),
-                  child: Text("Scan to Exit"),
+                  onPressed: () => toggleAutoScan("IN"),
+                  child: Text(isAutoScanEnabled && autoScanMode == "IN"
+                      ? "Stop Auto Scan (IN)"
+                      : "Start Auto Scan (IN)"),
                 ),
-                SizedBox(height: 10),
                 ElevatedButton(
-                  onPressed: () => scanNfcAndUpdateStatus("IN"),
-                  child: Text("Scan to Enter"),
+                  onPressed: () => toggleAutoScan("OUT"),
+                  child: Text(isAutoScanEnabled && autoScanMode == "OUT"
+                      ? "Stop Auto Scan (OUT)"
+                      : "Start Auto Scan (OUT)"),
                 ),
               ],
             ),
-            SizedBox(height: 30),
-            Divider(),
-            SizedBox(height: 10),
-            Text("Students Currently Outside", style: TextStyle(fontWeight: FontWeight.bold)),
-            SizedBox(height: 5),
-            studentsOutside.isEmpty
-                ? Text("No students outside.")
-                : Expanded(
-              child: ListView.builder(
-                shrinkWrap: true,
-                itemCount: studentsOutside.length,
-                itemBuilder: (context, index) {
-                  return ListTile(
-                    title: Text(studentsOutside[index]["name"]!),
-                    subtitle: Text("NOMAK: ${studentsOutside[index]["nomak"]}"),
-                  );
-                },
-              ),
+            ElevatedButton(
+              onPressed: () async {
+                setState(() {
+                  isAutoScanEnabled = false;
+                  autoScanMode = "";
+                  message = "Scanning Stopped"; // Update the UI message
+                });
+
+                try {
+                  await NfcManager.instance.stopSession(); // Ensure it properly stops
+                  reloadPage(context);
+                } catch (e) {
+                  print("Error stopping NFC session: $e");
+                }
+              },
+              style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+              child: Text("Stop Scanning", style: TextStyle(color: Colors.white)),
             ),
           ],
         ),

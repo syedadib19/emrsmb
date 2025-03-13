@@ -2,6 +2,7 @@ import 'package:e_m_r_s_m_b/NFCbatchdemerit.dart';
 import 'package:e_m_r_s_m_b/NFCbatchmerit.dart';
 import 'package:e_m_r_s_m_b/NFCstudentlookup.dart';
 import 'package:e_m_r_s_m_b/Outing.dart';
+import 'package:e_m_r_s_m_b/StudentStatus.dart';
 import 'package:e_m_r_s_m_b/burnNFC.dart';
 import 'package:e_m_r_s_m_b/getsmp.dart';
 import 'package:e_m_r_s_m_b/meritdata.dart';
@@ -12,8 +13,6 @@ import '/flutter_flow/flutter_flow_util.dart';
 import '/flutter_flow/flutter_flow_widgets.dart';
 import 'dart:ui';
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:provider/provider.dart';
 import 'home_page_model.dart';
 export 'home_page_model.dart';
 
@@ -230,7 +229,6 @@ class _HomePageWidgetState extends State<HomePageWidget> {
                       borderRadius: BorderRadius.circular(8.0),
                     ),
                   ),
-
                 ),
                 Padding(
                   padding: EdgeInsetsDirectional.fromSTEB(0.0, 70.0, 0.0, 0.0),
@@ -278,6 +276,34 @@ class _HomePageWidgetState extends State<HomePageWidget> {
                       iconPadding:
                       EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
                       color: Color(0xFF114733),
+                      textStyle: FlutterFlowTheme.of(context).titleSmall.override(
+                        fontFamily: 'Inter Tight',
+                        color: Colors.white,
+                        letterSpacing: 0.0,
+                      ),
+                      elevation: 0.0,
+                      borderRadius: BorderRadius.circular(8.0),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: EdgeInsetsDirectional.fromSTEB(0.0, 50.0, 0.0, 0.0),
+                  child: FFButtonWidget(
+                    onPressed: () {
+                      print('Button pressed ...');
+                      Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context)=>StudentStatusPage())
+                      );
+                    },
+                    text: 'OUTING STATUS',
+                    options: FFButtonOptions(
+                      height: 40.0,
+                      padding:
+                      EdgeInsetsDirectional.fromSTEB(16.0, 0.0, 16.0, 0.0),
+                      iconPadding:
+                      EdgeInsetsDirectional.fromSTEB(0.0, 0.0, 0.0, 0.0),
+                      color: Color(0xFF394CEF),
                       textStyle: FlutterFlowTheme.of(context).titleSmall.override(
                         fontFamily: 'Inter Tight',
                         color: Colors.white,
