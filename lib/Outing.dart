@@ -138,7 +138,7 @@ class _NfcOutingScreenState extends State<NfcOutingScreen> {
           if (data["status"] == "success") {
             String nama = data["nama"] ?? "Unknown";
             saveLastScan(nomak, nama, status);
-            showPopup("✅ Success", "${data["message"]}\nStudent: $nama", Colors.green, true);
+            //showPopup("✅ Success", "${data["message"]}\nStudent: $nama", Colors.green, true); // i try to comment this to avoid popup every scan
           } else {
             showPopup("❌ Error", data["message"] ?? "Failed to update outing data", Colors.red, false);
           }
@@ -200,13 +200,13 @@ class _NfcOutingScreenState extends State<NfcOutingScreen> {
                 ElevatedButton(
                   onPressed: () => toggleAutoScan("IN"),
                   child: Text(isAutoScanEnabled && autoScanMode == "IN"
-                      ? "Stop Auto Scan (IN)"
+                      ? "SUCCESS"
                       : "Start Auto Scan (IN)"),
                 ),
                 ElevatedButton(
                   onPressed: () => toggleAutoScan("OUT"),
                   child: Text(isAutoScanEnabled && autoScanMode == "OUT"
-                      ? "Stop Auto Scan (OUT)"
+                      ? "SUCCESS"
                       : "Start Auto Scan (OUT)"),
                 ),
               ],
